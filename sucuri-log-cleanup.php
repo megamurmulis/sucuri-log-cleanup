@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: Sucuri log file cleanup
-Description: Periodically cleanup Sucuri log files to avoid memory_limit exceeded error with big log files.
-Version:     1.0.6
+Description: Periodically cleanup Sucuri log files to avoid "Allowed memory size exhausted" error with big log files.
+Version:     1.0.8
 Author:      megamurmulis
 Author URI:  https://codelab.tk/
 Text Domain: SucuriLogCleanup
@@ -20,6 +20,7 @@ if ( ! defined('SUCURI_LOG_CLEANUP_DOMAIN') ){
 if ( ! class_exists( 'SucuriLogCleanup' ) ) :
 	class SucuriLogCleanup {
 		protected static $instance = null;
+		const SCHEMA = 2; // Increment to force cleanup on update
 		
 		private $max_age;
 		private $sucuri_log_path;
@@ -42,6 +43,7 @@ if ( ! class_exists( 'SucuriLogCleanup' ) ) :
 				add_action( 'admin_notices', array( $this, 'sucuri_missing_notice' ) );
 			}
 			add_action( 'admin_init', array( $this, 'maybe_delete_old_log_files' ) );
+			add_action( 'admin_init', array( $this, 'force_clean_on_update' ) );
 		}
 		
 		
@@ -99,6 +101,16 @@ if ( ! class_exists( 'SucuriLogCleanup' ) ) :
 				<form method="post" action="options-general.php?page=<?php echo SUCURI_LOG_CLEANUP_DOMAIN; ?>">
 					<?php echo settings_fields( 'SucuriLogCleanup' ); ?>
 					<table class="form-table top-small">
+						<tr valign="top">
+							<th scope="row">
+								<label for="">
+									<?php _e('Hook:', SUCURI_LOG_CLEANUP_DOMAIN); ?>
+								</label>
+							</th>
+							<td>
+								<span><?php _e('admin_init', SUCURI_LOG_CLEANUP_DOMAIN); ?></span>
+							</td>
+						</tr>
 						<tr valign="top">
 							<th scope="row">
 								<label for="">
@@ -205,6 +217,15 @@ if ( ! class_exists( 'SucuriLogCleanup' ) ) :
 				if ($verbose){
 					printf('<p class="margin0">DEL: %s</p>', $this->sucuri_log_path . $filename);
 				}
+			}
+		}
+		
+		function force_clean_on_update(){
+			$old_schema = get_option('SucuriLogCleanup_schema');
+			
+			if ( !$old_schema || (version_compare($old_schema, $this::SCHEMA) < 0) ){
+				update_option('SucuriLogCleanup_schema', $this::SCHEMA);
+				$this->force_clean_logs(false);
 			}
 		}
 	}
