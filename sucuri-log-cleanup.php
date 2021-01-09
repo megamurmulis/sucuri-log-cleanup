@@ -2,7 +2,7 @@
 /*
 Plugin Name: Sucuri log file cleanup
 Description: Periodically cleanup Sucuri log files to avoid "Allowed memory size exhausted" error with big log files.
-Version:     1.0.8
+Version:     1.0.9
 Author:      megamurmulis
 Author URI:  https://codelab.tk/
 Text Domain: SucuriLogCleanup
@@ -20,13 +20,14 @@ if ( ! defined('SUCURI_LOG_CLEANUP_DOMAIN') ){
 if ( ! class_exists( 'SucuriLogCleanup' ) ) :
 	class SucuriLogCleanup {
 		protected static $instance = null;
-		const SCHEMA = 2; // Increment to force cleanup on update
+		const SCHEMA = 3; // Increment to force cleanup on update
 		
 		private $max_age;
 		private $sucuri_log_path;
 		private $log_files = array(
 			'sucuri-auditqueue.php',
 			'sucuri-oldfailedlogins.php',
+			'sucuri-failedlogins.php',
 		);
 		
 		const MAX_DAYS = 7;
